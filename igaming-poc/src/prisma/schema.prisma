@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model inwardCapacity {
+  id                Int        @id @default(autoincrement())
+  tenantBankId      Int
+  tenantId          Int
+  remainingcapacity Decimal?   @db.Decimal
+  lockedBy          Int
+  lockexpiresat     DateTime
+  user              user       @relation(fields: [lockedBy], references: [id], onDelete: Cascade)
+  tenantBank        tenantBank @relation(fields: [tenantBankId], references: [id], onDelete: Cascade)
+  tenant            tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model statement {
+  id           Int           @id @default(autoincrement())
+  tenantBankId Int
+  tenantId     Int
+  amount       Decimal?      @db.Decimal
+  type         StatementType @default(INWARD)
+  createdAt    DateTime      @default(now())
+  tenantBank   tenantBank    @relation(fields: [tenantBankId], references: [id], onDelete: Cascade)
+  tenant       tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model tenant {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(100)
+  primaryMobile  String
+  url            String?
+  adminUrl       String?
+  email          String?
+  authMethod     String[]         @default(["mobile"])
+  address        String?
+  createdBy      Int?
+  updatedBy      Int?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  inwardCapacity inwardCapacity[]
+  statement      statement[]
+  tenantBank     tenantBank[]
+  user           user[]
+}
+
+model tenantBank {
+  id             Int              @id @default(autoincrement())
+  tenantId       Int
+  name           String           @db.VarChar(100)
+  uniqueCode     String?
+  bankBranch     String?
+  ifscCode       String?
+  additionalInfo String?
+  status         CommonStatusType @default(ACTIVE)
+  inwardlimit    Decimal          @db.Decimal
+  outwardlimit   Decimal          @db.Decimal
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  inwardCapacity inwardCapacity[]
+  statement      statement[]
+  tenant         tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model user {
+  id             Int              @id @default(autoincrement())
+  email          String?
+  password       String?
+  mobile         String?
+  firstName      String?
+  lastName       String?
+  countryCode    String?
+  status         CommonStatusType @default(ACTIVE)
+  uniqueCode     String?
+  tenantId       Int
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  inwardCapacity inwardCapacity[]
+  tenant         tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+enum CommonStatusType {
+  ACTIVE
+  INACTIVE
+}
+
+enum StatementType {
+  INWARD
+  OUTWARD
+}

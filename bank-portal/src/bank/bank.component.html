@@ -1,0 +1,59 @@
+<h1>Welcome to the bank configuration page</h1>
+<div class="bank-page">
+	<div class="toolbar">
+		<button (click)="openAdd()">Add Bank</button>
+	</div>
+
+	<div *ngIf="isModalOpen" class="modal-backdrop">
+		<div class="modal">
+			<h3>{{ bankForm.value?.id ? 'Edit Bank' : 'Add Bank' }}</h3>
+			<form [formGroup]="bankForm">
+				<div class="form-row">
+					<label>Bank name</label>
+					<input formControlName="name" />
+				</div>
+
+				<div class="form-row">
+					<label>IFSC Code</label>
+					<input formControlName="ifsc" />
+				</div>
+
+				<div class="form-row">
+					<label>Branch Address</label>
+					<textarea formControlName="branchAddress"></textarea>
+				</div>
+
+				<div class="actions">
+					<button type="button" (click)="cancel()">Cancel</button>
+					<button type="button" (click)="save()" [disabled]="isLoading">{{ isLoading ? 'Saving...' : 'Save' }}</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="table-wrap">
+		<table>
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>IFSC</th>
+					<th>Branch Address</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let bank of banks; trackBy: trackById">
+					<td>{{ bank.name }}</td>
+					<td>{{ bank.ifsc || '-' }}</td>
+					<td>{{ bank.branchAddress || '-' }}</td>
+					<td>
+						<button (click)="openEdit(bank)">Edit</button>
+					</td>
+				</tr>
+				<tr *ngIf="banks.length === 0">
+					<td colspan="4">No banks available.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
